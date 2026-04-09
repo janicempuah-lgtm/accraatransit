@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Accra Transit Pro</title>
+
+<style>
+:root{
+  --bg:#000;
+  --fg:#fff;
+  --muted:#9a9a9a;
+  --border:#2a2a2a;
+}
+
+*{box-sizing:border-box;}
+
+body {
+    margin:0;
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    background:var(--bg);
+    color:var(--fg);
+}
+
+header {
+    position:fixed;
+    top:0;
+    width:100%;
+    background:rgba(0,0,0,0.9);
+    backdrop-filter: blur(6px);
+    text-align:center;
+    padding:20px;
+    border-bottom:1px solid var(--border);
+    z-index:10;
+}
+
+header h1{
+    letter-spacing:3px;
+    font-size:18px;
+    margin-bottom:10px;
+}
+
+nav {
+    display:flex;
+    justify-content:center;
+    gap:30px;
+}
+
+nav a {
+    color:var(--muted);
+    text-decoration:none;
+    font-size:13px;
+    transition:0.3s;
+}
+
+nav a:hover{
+    color:var(--fg);
+}
+
+.content {
+    display:none;
+    margin-top:120px;
+    padding:20px;
+    animation:fade 0.4s ease;
+}
+
+@keyframes fade{
+    from{opacity:0; transform:translateY(10px)}
+    to{opacity:1; transform:translateY(0)}
+}
+
+.active { display:block; }
+
+.container {
+    max-width:520px;
+    margin:auto;
+}
+
+input, select, button {
+    width:100%;
+    padding:14px;
+    margin:10px 0;
+    background:transparent;
+    border:1px solid var(--border);
+    color:var(--fg);
+    font-size:14px;
+}
+
+input::placeholder{ color:var(--muted); }
+
+button {
+    cursor:pointer;
+    transition:0.3s;
+}
+
+button:hover {
+    background:white;
+    color:black;
+}
+
+.ticket {
+    border:1px solid var(--border);
+    padding:20px;
+    margin-top:15px;
+    line-height:1.6;
+    background:rgba(255,255,255,0.02);
+}
+
+.card {
+    border:1px solid var(--border);
+    padding:20px;
+    margin-top:15px;
+    background:rgba(255,255,255,0.02);
+}
+
+.split {
+    display:flex;
+    gap:20px;
+}
+
+.box {
+    flex:1;
+    border:1px solid var(--border);
+    padding:20px;
+    background:rgba(255,255,255,0.02);
+}
+
+h2, h3{
+    font-weight:500;
+    letter-spacing:1px;
+}
+
+.small {
+    font-size:0.75em;
+    color:var(--muted);
+    cursor:pointer;
+}
+
+.login-container {
+    display:flex;
+    height:100vh;
+    justify-content:center;
+    align-items:center;
+}
+
+.login-box {
+    width:350px;
+    border:1px solid var(--border);
+    padding:40px;
+    text-align:center;
+}
+
+.status{
+    font-size:13px;
+    color:var(--muted);
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="login-container" id="loginPage">
+    <div class="login-box">
+        <h2>ACCRA TRANSIT</h2>
+        <input type="text" id="username" placeholder="Username or Phone Number">
+        <input type="password" id="password" placeholder="Password">
+        <select id="role">
+            <option value="passenger">Passenger</option>
+            <option value="driver">Driver/Mate</option>
+            <option value="admin">Administrator</option>
+        </select>
+        <button onclick="login()">Login</button>
+        <p class="small" onclick="forgotPassword()">Forgot password?</p>
+    </div>
+</div>
+
+<div id="app" style="display:none;">
+<header>
+    <h1>ACCRA TRANSIT</h1>
+    <nav id="nav"></nav>
+</header>
+
+<div class="content" id="planner">
+    <div class="container">
+        <input type="text" id="pickup" placeholder="Pickup">
+        <input type="text" id="dropoff" placeholder="Dropoff">
+        <button onclick="planRoute()">Find Route</button>
+        <div id="routes"></div>
+
+        <div id="vehicleSection" style="display:none;">
+            <h3>Select Vehicle</h3>
+            <select id="vehicleSelect"></select>
+            <input type="number" id="seatCount" placeholder="Number of Seats" min="1">
+            <button onclick="selectVehicle()">Confirm Vehicle</button>
+        </div>
+    </div>
+</div>
+
+<div class="content" id="tickets">
+    <div class="container">
+        <h3>Mobile Money</h3>
+        <input type="text" id="phone" placeholder="Phone Number">
+        <button onclick="requestPayment()">Request Payment</button>
+        <p id="paymentStatus" class="status"></p>
+    </div>
+</div>
+
+<div class="content" id="history">
+    <div class="container">
+        <div id="historyList"></div>
+    </div>
+</div>
+
+<div class="content" id="system">
+    <div class="container">
+        <h2>System Design</h2>
+        <div class="split">
+            <div class="box">
+                <h3>Digital</h3>
+                <p>Route planning</p>
+                <p>Vehicle selection</p>
+                <p>Seat booking</p>
+                <p>Mobile money</p>
+            </div>
+            <div class="box">
+                <h3>Non-Digital</h3>
+                <p>Route boards</p>
+                <p>Color coding</p>
+                <p>Printed tickets</p>
+                <p>Assistants</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="content" id="driver">
+    <div class="container">
+        <h3>Driver Dashboard</h3>
+        <div class="card">Route: Madina → Circle</div>
+        <div class="card">Passengers: 8</div>
+        <button onclick="updateLocation()">Update Location</button>
+        <p id="driverStatus" class="status"></p>
+    </div>
+</div>
+
+<div class="content" id="admin">
+    <div class="container">
+        <h3>Admin Dashboard</h3>
+        <div class="card">Vehicles on Route: 3</div>
+        <input type="text" id="trackInput" placeholder="Tracking Number">
+        <button onclick="trackVehicle()">Track Vehicle</button>
+        <div id="trackResult"></div>
+    </div>
+</div>
+
+</div>
+
+<script>
+let role="";
+let currentTrip=null;
+let selectedVehicle=null;
+let historyData=[];
+
+let vehicles=[
+ {plate:"GR-1234-22",capacity:12,available:5},
+ {plate:"AS-5678-21",capacity:15,available:0},
+ {plate:"GW-9101-23",capacity:10,available:3}
+];
+
+function login(){
+ let u=username.value,p=password.value;
+ role=roleSelect();
+ if(u&&p){loginPage.style.display="none";app.style.display="block";setupRole();}
+}
+
+function roleSelect(){return document.getElementById("role").value}
+
+function setupRole(){
+ let nav=document.getElementById("nav");
+ if(role==="passenger"){
+ nav.innerHTML=`<a onclick="showPage('planner')">Planner</a><a onclick="showPage('tickets')">Payment</a><a onclick="showPage('history')">History</a><a onclick="showPage('system')">System</a>`;
+ showPage('planner');}
+ if(role==="driver"){nav.innerHTML=`<a onclick="showPage('driver')">Dashboard</a>`;showPage('driver');}
+ if(role==="admin"){nav.innerHTML=`<a onclick="showPage('admin')">Admin</a>`;showPage('admin');}
+}
+
+function showPage(id){document.querySelectorAll('.content').forEach(c=>c.classList.remove('active'));document.getElementById(id).classList.add('active');}
+
+function planRoute(){
+ let p=pickup.value.toLowerCase();
+ let d=dropoff.value.toLowerCase();
+ currentTrip={p,d};
+ routes.innerHTML=`<div class='ticket'>${p.toUpperCase()} → ${d.toUpperCase()}</div>`;
+ loadVehicles();
+}
+
+function loadVehicles(){
+ let s=vehicleSelect; s.innerHTML="";
+ vehicles.forEach((v,i)=>{
+ let status=v.available===0?"FULL":v.available+" seats";
+ s.innerHTML+=`<option value='${i}'>${v.plate} | ${v.capacity} | ${status}</option>`;
+ });
+ vehicleSection.style.display="block";
+}
+
+function selectVehicle(){
+ selectedVehicle=vehicles[vehicleSelect.value];
+}
+
+function requestPayment(){
+ if(!selectedVehicle)return alert("Select vehicle first");
+ let seats=parseInt(seatCount.value);
+ if(!seats||seats<=0)return alert("Enter seats");
+ if(seats>selectedVehicle.available)return alert("Not enough seats");
+ paymentStatus.innerText="Waiting for approval...";
+ setTimeout(()=>{
+ selectedVehicle.available-=seats;
+ historyData.push({route:currentTrip.p+" → "+currentTrip.d,vehicle:selectedVehicle.plate,seats});
+ updateHistory();
+ loadVehicles();
+ paymentStatus.innerText="Approved";
+ },2000);
+}
+
+function updateHistory(){
+ historyList.innerHTML="";
+ historyData.forEach(t=>{
+ historyList.innerHTML+=`<div class='ticket'>${t.route}<br>${t.vehicle}<br>${t.seats} seats</div>`;
+ });
+}
+
+function updateLocation(){driverStatus.innerText="Location updated"}
+function trackVehicle(){trackResult.innerHTML=`<div class='card'>Vehicle near Circle</div>`}
+</script>
+
+</body>
+</html>
+
